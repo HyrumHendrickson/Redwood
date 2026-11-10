@@ -1,7 +1,7 @@
 # Redwood
 
 A testbed for cryptocurrency consensus, written in C with a GTK3 interface. Create a network of nodes, let them transact, make some of them cheat, and inspect every block, fork and rejection.
-
+ 
 ## Build
 
 Requires a C11 compiler, `make`, `pkg-config` and GTK 3.
