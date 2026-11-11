@@ -19,11 +19,11 @@ redwood-cli-san: $(CORE) cli.c redwood.h sha256.h
 
 # Regression tests (no GUI dependencies).
 test: redwood-cli
-	./tests/run_tests.sh ./redwood-cli
+	bash ./tests/run_tests.sh ./redwood-cli
 
 # Same tests under the sanitizers.
 check: redwood-cli-san
-	./tests/run_tests.sh ./redwood-cli-san
+	bash ./tests/run_tests.sh ./redwood-cli-san
 
 format:
 	clang-format -i $(SRCS)
