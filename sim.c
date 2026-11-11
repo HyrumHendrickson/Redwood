@@ -25,6 +25,30 @@
 #define REWRITE_CONF 3     /* confirmations the rewrite attacker waits for */
 #define REWRITE_GIVEUP 8   /* give up when this many blocks behind */
 
+/* ------------------------------------------------------------ allocation */
+
+/* The simulation cannot continue after an allocation failure, so fail loudly
+ * instead of dereferencing NULL. */
+static void *xcalloc(size_t n, size_t size)
+{
+    void *p = calloc(n, size);
+    if (!p) {
+        fprintf(stderr, "redwood: out of memory\n");
+        abort();
+    }
+    return p;
+}
+
+static void *xrealloc(void *old, size_t size)
+{
+    void *p = realloc(old, size);
+    if (!p) {
+        fprintf(stderr, "redwood: out of memory\n");
+        abort();
+    }
+    return p;
+}
+
 /* ------------------------------------------------------------------ names */
 
 static const char *COIN_NAMES[COIN_COUNT] = {
@@ -176,7 +200,7 @@ static void send_msg(Sim *s, int type, int to, int id, int lat)
     int b = (s->tick + lat) % WHEEL;
     if (s->wn[b] == s->wcap[b]) {
         s->wcap[b] = s->wcap[b] ? s->wcap[b] * 2 : 256;
-        s->wheel[b] = realloc(s->wheel[b], (size_t)s->wcap[b] * sizeof(Msg));
+        s->wheel[b] = xrealloc(s->wheel[b], (size_t)s->wcap[b] * sizeof(Msg));
     }
     s->wheel[b][s->wn[b]++] = (Msg){(uint8_t)type, (int16_t)to, id};
 }
@@ -951,9 +975,9 @@ int sim_add_node(Sim *s)
     n->activity = 0.10;
     n->victim = i == 0 ? 1 : 0;
     n->priv_tip = -1;
-    n->known_blk = calloc(MAX_BLOCKS, 1);
-    n->known_tx = calloc(MAX_TXS, 1);
-    n->mempool = calloc(MP_MAX, sizeof(int));
+    n->known_blk = xcalloc(MAX_BLOCKS, 1);
+    n->known_tx = xcalloc(MAX_TXS, 1);
+    n->mempool = xcalloc(MP_MAX, sizeof(int));
     return i;
 }
 
@@ -971,12 +995,12 @@ void sim_remove_last_node(Sim *s)
 
 Sim *sim_create(void)
 {
-    Sim *s = calloc(1, sizeof *s);
-    s->blocks = calloc(MAX_BLOCKS, sizeof(Block));
-    s->txs = calloc(MAX_TXS, sizeof(Tx));
-    s->log = calloc(LOG_LINES, LOG_LEN);
-    s->hist = calloc(HIST_CAP, sizeof *s->hist);
-    s->histt = calloc(HIST_CAP, sizeof(int));
+    Sim *s = xcalloc(1, sizeof *s);
+    s->blocks = xcalloc(MAX_BLOCKS, sizeof(Block));
+    s->txs = xcalloc(MAX_TXS, sizeof(Tx));
+    s->log = xcalloc(LOG_LINES, LOG_LEN);
+    s->hist = xcalloc(HIST_CAP, sizeof *s->hist);
+    s->histt = xcalloc(HIST_CAP, sizeof(int));
     s->cfg.coin = COIN_POW;
     s->cfg.interval = 12;
     s->cfg.reward = 50;

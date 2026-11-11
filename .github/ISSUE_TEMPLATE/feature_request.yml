@@ -1,0 +1,15 @@
+name: Feature request
+description: Propose a new coin, cheat behaviour or capability
+labels: [enhancement]
+body:
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should change, and what question does it let users study?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

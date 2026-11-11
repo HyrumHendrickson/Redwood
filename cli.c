@@ -6,27 +6,65 @@
  * cheatmask bits: 1 selfish, 2 rewrite, 4 split, 8 inflate, 16 forge, 32 censor, 64 equivocate
  */
 #include "redwood.h"
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAX_TICKS 10000000L
+#define MAX_CHEAT_MASK ((1 << CHEAT_COUNT) - 1)
+
+static int usage(const char *prog)
+{
+    fprintf(stderr,
+            "usage: %s <coin 0|1|2> <ticks> [seed] [node:cheatmask[:hashpower[:balance]] ...]\n",
+            prog);
+    return 2;
+}
+
+/* Parse a base-10 integer in [lo, hi]. Returns 0 on success, -1 on any error. */
+static int parse_long(const char *str, long lo, long hi, long *out)
+{
+    char *end = NULL;
+    errno = 0;
+    long v = strtol(str, &end, 10);
+    if (errno != 0 || end == str || *end != '\0' || v < lo || v > hi) return -1;
+    *out = v;
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
-    int coin = argc > 1 ? atoi(argv[1]) : 0;
-    int ticks = argc > 2 ? atoi(argv[2]) : 5000;
+    long coin = 0, ticks = 5000;
+    if (argc > 1 && parse_long(argv[1], 0, COIN_COUNT - 1, &coin) != 0) return usage(argv[0]);
+    if (argc > 2 && parse_long(argv[2], 0, MAX_TICKS, &ticks) != 0) return usage(argv[0]);
+
     Sim *s = sim_create();
-    s->cfg.coin = (CoinType)(coin % COIN_COUNT);
+    s->cfg.coin = (CoinType)coin;
     s->cfg.interval = coin == 0 ? 12 : 6;
-    if (argc > 3) s->cfg.seed = strtoull(argv[3], NULL, 10);
-    for (int i = 4; i < argc; i++) {
-        int node = 0, mask = 0, hp = -1, bal = -1;
-        if (sscanf(argv[i], "%d:%d:%d:%d", &node, &mask, &hp, &bal) >= 2 && node >= 0 && node < s->nnodes) {
-            s->nodes[node].cheats = (unsigned)mask;
-            if (hp >= 0) s->nodes[node].hashpower = hp;
-            if (bal >= 0) s->nodes[node].init_balance = bal;
+    if (argc > 3) {
+        char *end = NULL;
+        errno = 0;
+        s->cfg.seed = strtoull(argv[3], &end, 10);
+        if (errno != 0 || end == argv[3] || *end != '\0') {
+            sim_free(s);
+            return usage(argv[0]);
         }
     }
+    for (int i = 4; i < argc; i++) {
+        int node = 0, mask = 0, hp = -1, bal = -1;
+        if (sscanf(argv[i], "%d:%d:%d:%d", &node, &mask, &hp, &bal) < 2 || node < 0 ||
+            node >= s->nnodes || mask < 0 || mask > MAX_CHEAT_MASK) {
+            fprintf(stderr, "%s: invalid node specification '%s'\n", argv[0], argv[i]);
+            sim_free(s);
+            return usage(argv[0]);
+        }
+        s->nodes[node].cheats = (unsigned)mask;
+        if (hp >= 0) s->nodes[node].hashpower = hp;
+        if (bal >= 0) s->nodes[node].init_balance = bal;
+    }
     sim_reset(s);
-    for (int t = 0; t < ticks && !s->limit_hit; t++) sim_step(s);
+    for (long t = 0; t < ticks && !s->limit_hit; t++) sim_step(s);
 
     int best = sim_best_tip(s);
     Block *b = &s->blocks[best];

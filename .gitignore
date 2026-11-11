@@ -1,2 +1,18 @@
+# Build outputs
 redwood
 redwood-cli
+redwood-cli-san
+*.o
+*.exe
+*.dSYM/
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Local environment and secrets
+.env
+*.pem
+*.key

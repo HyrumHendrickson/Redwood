@@ -1,5 +1,9 @@
 # Redwood
 
+[![CI](https://github.com/HyrumHendrickson/Redwood/actions/workflows/ci.yml/badge.svg)](https://github.com/HyrumHendrickson/Redwood/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/HyrumHendrickson/Redwood/actions/workflows/codeql.yml/badge.svg)](https://github.com/HyrumHendrickson/Redwood/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A testbed for cryptocurrency consensus, written in C with a GTK3 interface. Create a network of nodes, let them transact, make some of them cheat, and inspect every block, fork and rejection.
  
 ## Build
@@ -73,3 +77,16 @@ Cheat mask bits: 1 selfish, 2 rewrite, 4 split, 8 inflate, 16 forge, 32 censor, 
 * Signatures are SHA-256(secret key, message) checked through a simulation oracle. A node can only sign with its own key, so it cannot forge another node's signature, but this stands in for public-key cryptography rather than implementing it.
 * No fees, no mempool incentives, no network partitions beyond the split double-spend, no slashing or finality gadget for Aspen.
 * Limits: 16 nodes, 120,000 blocks and 400,000 transactions per chain; the run halts and logs a message when reached.
+
+## Development
+
+```
+make test     # regression tests (headless, no GTK needed)
+make check    # the same tests under AddressSanitizer and UndefinedBehaviorSanitizer
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and [AGENTS.md](AGENTS.md) for architecture rules and code style. Report vulnerabilities as described in [SECURITY.md](SECURITY.md). Changes are recorded in [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).
