@@ -24,7 +24,7 @@ jobs:
           - { os: ubuntu-latest, cc: clang }
           - { os: macos-latest, cc: clang }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build (warnings are errors)
         run: make redwood-cli CC=${{ matrix.cc }} CFLAGS="-O2 -Wall -Wextra -Werror -std=gnu11"
       - name: Test
@@ -34,14 +34,14 @@ jobs:
     name: ASan and UBSan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: make check
 
   gui:
     name: GUI build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install GTK 3
         run: |
           sudo apt-get update
